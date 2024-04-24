@@ -12,6 +12,7 @@ import "./Navigation.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useLogoutMutation } from "../../redux/api/usersApiSlice";
 import { logout } from "../../redux/features/auth/authSlice";
+import FavoritesCount from "../Products/FavoritesCount";
 
 const Navigation = () => {
   const { userInfo } = useSelector((state) => state.auth);
@@ -60,6 +61,7 @@ const Navigation = () => {
           <span className="hidden nav-item-name mt-[3rem]">HOME</span>
           {""}
         </Link>
+
         <Link
           to="/shop"
           className="flex item-center transition-transform transform hover:translate-x-2"
@@ -68,6 +70,7 @@ const Navigation = () => {
           <span className="hidden nav-item-name mt-[3rem]">SHOP</span>
           {""}
         </Link>
+
         <Link
           to="/cart"
           className="flex item-center transition-transform transform hover:translate-x-2"
@@ -76,13 +79,15 @@ const Navigation = () => {
           <span className="hidden nav-item-name mt-[3rem]">CART</span>
           {""}
         </Link>
-        <Link
-          to="/favourite"
-          className="flex item-center transition-transform transform hover:translate-x-2"
-        >
-          <FaHeart className="mr-2 mt-[3rem]" size={26} />
-          <span className="hidden nav-item-name mt-[3rem]">FAVOURITE</span>
-          {""}
+
+        <Link to="/favorite" className="flex relative">
+          <div className="flex justify-center items-center transition-transform transform hover:translate-x-2">
+            <FaHeart className="mt-[3rem] mr-2" size={20} />
+            <span className="hidden nav-item-name mt-[3rem]">
+              Favorites
+            </span>{" "}
+            <FavoritesCount />
+          </div>
         </Link>
       </div>
 
@@ -182,7 +187,7 @@ const Navigation = () => {
               </button>
             </li>
           </ul>
-        )} 
+        )}
 
         {!userInfo && (
           <ul>
@@ -205,8 +210,7 @@ const Navigation = () => {
               </Link>
             </li>
           </ul>
-        )}    
-
+        )}
       </div>
     </div>
   );

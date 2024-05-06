@@ -27,9 +27,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// app.get("/", (req, res) => {
-//     res.send("Hello world");
-// });
+// This for testing
+app.get("/", (req, res) => {
+    res.send("Hello world");
+});
 
 app.use("/api/users", userRoutes);
 app.use("/api/category", categoryRoutes);

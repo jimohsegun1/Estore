@@ -28,9 +28,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // This for testing the backend api when deployed
-app.get("/", (req, res) => {
-    res.send("Hello world this is the backend api");
-});
+// app.get("/", (req, res) => {
+//     res.send("Hello world this is the backend api");
+// });
 
 app.use("/api/users", userRoutes);
 app.use("/api/category", categoryRoutes);

@@ -5,10 +5,12 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon backend/index.js",
+    "dev": "NODE_ENV=development nodemon backend/index.js",
+		"start": "NODE_ENV=production node backend/index.js",
+		"build": "npm install && npm install --prefix frontend && npm run build --prefix frontend",
     "backend": "nodemon backend/index.js",
     "frontend": "npm run dev --prefix frontend",
-    "dev": "concurrently \"npm run frontend\" \"npm run backend"
+    "dev2": "concurrently \"npm run frontend\" \"npm run backend"
   },
   "keywords": [],
   "author": "",

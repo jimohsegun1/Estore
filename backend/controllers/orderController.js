@@ -30,32 +30,37 @@ const createOrder = async (req, res) => {
   try {
     const { orderItems, shippingAddress, paymentMethod } = req.body;
 
-    if (orderItems && orderItems.length === 0) {
-      res.status(400);
-      throw new Error("No order items");
+    if (!orderItems || orderItems.length === 0) {
+      return res.status(400).json({ error: "No order items" });
     }
 
     const itemsFromDB = await Product.find({
       _id: { $in: orderItems.map((x) => x._id) },
     });
 
-    const dbOrderItems = orderItems.map((itemFromClient) => {
+    const dbOrderItems = [];
+    for (const itemFromClient of orderItems) {
       const matchingItemFromDB = itemsFromDB.find(
         (itemFromDB) => itemFromDB._id.toString() === itemFromClient._id
       );
 
       if (!matchingItemFromDB) {
-        res.status(404);
-        throw new Error(`Product not found: ${itemFromClient._id}`);
+        return res.status(404).json({ error: `Product not found: ${itemFromClient._id}` });
       }
 
-      return {
+      if (matchingItemFromDB.countInStock < itemFromClient.qty) {
+        return res.status(400).json({
+          error: `Insufficient stock for "${matchingItemFromDB.name}". Available: ${matchingItemFromDB.countInStock}`,
+        });
+      }
+
+      dbOrderItems.push({
         ...itemFromClient,
         product: itemFromClient._id,
         price: matchingItemFromDB.price,
         _id: undefined,
-      };
-    });
+      });
+    }
 
     const { itemsPrice, taxPrice, shippingPrice, totalPrice } =
       calcPrices(dbOrderItems);
@@ -72,6 +77,15 @@ const createOrder = async (req, res) => {
     });
 
     const createdOrder = await order.save();
+
+    await Promise.all(
+      dbOrderItems.map((item) =>
+        Product.findByIdAndUpdate(item.product, {
+          $inc: { countInStock: -item.qty },
+        })
+      )
+    );
+
     res.status(201).json(createdOrder);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -168,7 +182,7 @@ const markOrderAsPaid = async (req, res) => {
         id: req.body.id,
         status: req.body.status,
         update_time: req.body.update_time,
-        email_address: req.body.payer.email_address,
+        email_address: req.body.payer?.email_address || "",
       };
 
       const updateOrder = await order.save();

@@ -1,5 +1,12 @@
 import asyncHandler from "../middlewares/asyncHandler.js";
 import Product from "../models/productModel.js";
+import cloudinary from "../config/cloudinary.js";
+
+function extractCloudinaryPublicId(url) {
+  if (!url || !url.includes("cloudinary.com")) return null;
+  const match = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[^.]+$/);
+  return match ? match[1] : null;
+}
 
 const addProduct = asyncHandler(async (req, res) => {
   try {
@@ -50,6 +57,13 @@ const updateProductDetails = asyncHandler(async (req, res) => {
         return res.json({ error: "Quantity is required" });
     }
 
+    const existing = await Product.findById(req.params.id);
+
+    if (existing && req.fields.image && req.fields.image !== existing.image) {
+      const publicId = extractCloudinaryPublicId(existing.image);
+      if (publicId) await cloudinary.uploader.destroy(publicId);
+    }
+
     const product = await Product.findByIdAndUpdate(
       req.params.id,
       { ...req.fields },
@@ -67,7 +81,13 @@ const updateProductDetails = asyncHandler(async (req, res) => {
 
 const removeProduct = asyncHandler(async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ error: "Product not found" });
+
+    const publicId = extractCloudinaryPublicId(product.image);
+    if (publicId) await cloudinary.uploader.destroy(publicId);
+
+    await Product.findByIdAndDelete(req.params.id);
     res.json(product);
   } catch (error) {
     console.error(error);
@@ -123,7 +143,7 @@ const fetchAllProducts = asyncHandler(async (req, res) => {
     const products = await Product.find({})
       .populate("category")
       // .limit(12)
-      .sort({ createAt: -1 });
+      .sort({ createdAt: -1 });
 
     res.json(products);
   } catch (error) {

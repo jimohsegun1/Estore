@@ -1,19 +1,10 @@
 import path from "path";
 import express from "express";
 import multer from "multer";
+import { authenticate } from "../middlewares/authMiddleware.js";
+import cloudinary from "../config/cloudinary.js";
 
 const router = express.Router();
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-
-  filename: (req, file, cb) => {
-    const extname = path.extname(file.originalname);
-    cb(null, `${file.fieldname}-${Date.now()}${extname}`);
-  },
-});
 
 const fileFilter = (req, file, cb) => {
   const filetypes = /jpe?g|png|webp/;
@@ -25,27 +16,41 @@ const fileFilter = (req, file, cb) => {
   if (filetypes.test(extname) && mimetypes.test(mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Images only"), false);
+    cb(new Error("Only JPEG, PNG, and WebP images are allowed"), false);
   }
 };
 
-const upload = multer({ storage, fileFilter });
-const uploadSingleImage = upload.single("image");
+const upload = multer({
+  storage: multer.memoryStorage(),
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+});
 
-router.post("/", (req, res) => {
-//   res.send("uploaded successfully");
-  uploadSingleImage(req, res, (err) => {
-    if (err) {
-      res.status(400).send({ message: err.message });
-    } else if (req.file) {
-      res.status(200).send({
-        message: "Image uploaded successfully",
-        image: `/${req.file.path}`,
-      });
-    } else {
-      res.status(400).send({ message: "No image file provided" });
-    }
-  });
+router.post("/", authenticate, upload.single("image"), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: "No image file provided" });
+  }
+
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: "estore/products" },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      stream.end(req.file.buffer);
+    });
+
+    res.status(200).json({
+      message: "Image uploaded successfully",
+      image: result.secure_url,
+      public_id: result.public_id,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Upload to Cloudinary failed", error: error.message });
+  }
 });
 
 export default router;

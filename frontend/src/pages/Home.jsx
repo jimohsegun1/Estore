@@ -16,31 +16,26 @@ const Home = () => {
         <Loader />
       ) : isError ? (
         <Message variant="danger">
-          {isError?.data.message || isError.error}
+          {isError?.data?.message || isError.error}
         </Message>
       ) : (
         <>
-          <div className="flex justify-between items-center">
-            <h1 className="ml-[20rem] mt-[10rem] text-[3rem]">
+          <div className="flex flex-col sm:flex-row justify-between items-center px-4 sm:px-10 mt-8 sm:mt-10 gap-4">
+            <h1 className="text-2xl sm:text-[3rem] font-light">
               Special Products
             </h1>
-
             <Link
               to="/shop"
-              className="bg-pink-600 font-bold rounded-full py-2 px-10 mr-[18rem] mt-[10rem]"
+              className="bg-pink-600 font-bold rounded-full py-2 px-10 hover:bg-pink-700 transition-colors"
             >
               Shop
             </Link>
           </div>
 
-          <div>
-            <div className="flex justify-center flex-wrap mt-[2rem]">
-              {data.products.map((product) => (
-                <div key={product._id}>
-                  <Product product={product} />
-                </div>
-              ))}
-            </div>
+          <div className="flex justify-center flex-wrap mt-6 gap-2 px-2">
+            {data.products.map((product) => (
+              <Product key={product._id} product={product} />
+            ))}
           </div>
         </>
       )}

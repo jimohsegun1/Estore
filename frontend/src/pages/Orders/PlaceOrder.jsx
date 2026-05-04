@@ -10,9 +10,7 @@ import { clearCartItems } from "../../redux/features/cart/cartSlice";
 
 const PlaceOrder = () => {
   const navigate = useNavigate();
-
   const cart = useSelector((state) => state.cart);
-
   const [createOrder, { isLoading, error }] = useCreateOrderMutation();
 
   useEffect(() => {
@@ -37,7 +35,7 @@ const PlaceOrder = () => {
       dispatch(clearCartItems());
       navigate(`/order/${res._id}`);
     } catch (error) {
-      toast.error(error);
+      toast.error(error?.data?.error || error.message || "Order failed");
     }
   };
 
@@ -45,41 +43,35 @@ const PlaceOrder = () => {
     <>
       <ProgressSteps step1 step2 step3 />
 
-      <div className="container mx-40 w-auto mt-8">
+      <div className="px-4 sm:px-10 mt-8">
         {cart.cartItems.length === 0 ? (
           <Message>Your cart is empty</Message>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
+          <div className="overflow-x-auto rounded-lg border border-gray-700">
+            <table className="w-full text-sm">
+              <thead className="border-b border-gray-700">
                 <tr>
-                  <td className="px-1 py-2 text-left align-top">Image</td>
-                  <td className="px-1 py-2 text-left">Product</td>
-                  <td className="px-1 py-2 text-left">Quantity</td>
-                  <td className="px-1 py-2 text-left">Price</td>
-                  <td className="px-1 py-2 text-left">Total</td>
+                  <th className="px-4 py-3 text-left">Image</th>
+                  <th className="px-4 py-3 text-left">Product</th>
+                  <th className="px-4 py-3 text-left">Qty</th>
+                  <th className="px-4 py-3 text-left">Price</th>
+                  <th className="px-4 py-3 text-left">Total</th>
                 </tr>
               </thead>
-
               <tbody>
                 {cart.cartItems.map((item, index) => (
-                  <tr key={index}>
-                    <td className="p-2">
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-16 h-16 object-cover"
-                      />
+                  <tr key={index} className="border-b border-gray-800">
+                    <td className="p-3">
+                      <img src={item.image} alt={item.name} className="w-14 h-14 object-cover rounded" />
                     </td>
-
-                    <td className="p-2">
-                      <Link to={`/product/${item.product}`}>{item.name}</Link>
+                    <td className="p-3">
+                      <Link to={`/product/${item.product}`} className="hover:text-pink-500">
+                        {item.name}
+                      </Link>
                     </td>
-                    <td className="p-2">{item.qty}</td>
-                    <td className="p-2">{item.price.toFixed(2)}</td>
-                    <td className="p-2">
-                      $ {(item.qty * item.price).toFixed(2)}
-                    </td>
+                    <td className="p-3">{item.qty}</td>
+                    <td className="p-3">$ {item.price.toFixed(2)}</td>
+                    <td className="p-3">$ {(item.qty * item.price).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -88,48 +80,42 @@ const PlaceOrder = () => {
         )}
 
         <div className="mt-8">
-          <h2 className="text-2xl font-semibold mb-5">Order Summary</h2>
-          <div className="flex justify-between flex-wrap p-8 bg-[#181818]">
-            <ul className="text-lg">
-              <li>
-                <span className="font-semibold mb-4">Items:</span> $
-                {cart.itemsPrice}
-              </li>
-              <li>
-                <span className="font-semibold mb-4">Shipping:</span> $
-                {cart.shippingPrice}
-              </li>
-              <li>
-                <span className="font-semibold mb-4">Tax:</span> $
-                {cart.taxPrice}
-              </li>
-              <li>
-                <span className="font-semibold mb-4">Total:</span> $
-                {cart.totalPrice}
+          <h2 className="text-2xl font-semibold mb-4">Order Summary</h2>
+
+          <div className="flex flex-col sm:flex-row gap-6 bg-[#181818] rounded-lg p-6">
+            <ul className="text-base space-y-2 flex-1">
+              <li><span className="font-semibold">Items:</span> $ {cart.itemsPrice}</li>
+              <li><span className="font-semibold">Shipping:</span> $ {cart.shippingPrice}</li>
+              <li><span className="font-semibold">Tax:</span> $ {cart.taxPrice}</li>
+              <li className="text-lg font-bold border-t border-gray-700 pt-2 mt-2">
+                <span>Total:</span> $ {cart.totalPrice}
               </li>
             </ul>
 
-            {error && <Message variant="danger">{error.data.message}</Message>}
-
-            <div>
-              <h2 className="text-2xl font-semibold mb-4">Shipping</h2>
-              <p>
-                <strong>Address:</strong> {cart.shippingAddress.address},{" "}
-                {cart.shippingAddress.city} {cart.shippingAddress.postalCode},{" "}
-                {cart.shippingAddress.country}
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold mb-2">Shipping</h2>
+              <p className="text-sm text-gray-300">
+                {cart.shippingAddress.address}, {cart.shippingAddress.city}{" "}
+                {cart.shippingAddress.postalCode}, {cart.shippingAddress.country}
               </p>
             </div>
 
-            <div>
-              <h2 className="text-2xl font-semibold mb-4">Payment Method</h2>
-              <strong>Method:</strong> {cart.paymentMethod}
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold mb-2">Payment Method</h2>
+              <p className="text-sm text-gray-300">{cart.paymentMethod}</p>
             </div>
           </div>
 
+          {error && (
+            <Message variant="danger">
+              {error?.data?.error || error?.data?.message || "Something went wrong"}
+            </Message>
+          )}
+
           <button
             type="button"
-            className="bg-pink-500 text-white py-2 px-4 rounded-full text-lg w-full mt-4"
-            disabled={cart.cartItems === 0}
+            className="bg-pink-500 hover:bg-pink-600 text-white py-3 px-6 rounded-full text-lg w-full mt-6 transition-colors disabled:opacity-50"
+            disabled={cart.cartItems.length === 0}
             onClick={placeOrderHandler}
           >
             Place Order

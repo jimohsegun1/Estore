@@ -9,17 +9,15 @@ import {
   deleteUserById,
   getUserById,
   updateUserById,
+  getWishlist,
+  addToWishlist,
+  removeFromWishlist,
 } from "../controllers/userController.js";
 import { authenticate, authorizeAdmin } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router
-  .route("/")
-  .post(createUser)
-  .get(authenticate, authorizeAdmin, getAllUsers);
-
-  // http://localhost:5000/api/users/auth
+router.route("/").post(createUser).get(authenticate, authorizeAdmin, getAllUsers);
 router.post("/auth", loginUser);
 router.post("/logout", logoutCurrentUser);
 
@@ -28,7 +26,9 @@ router
   .get(authenticate, getCurrentUserProfile)
   .put(authenticate, updateCurrentUserProfile);
 
-// ADMIN ROUTES 👇
+router.route("/wishlist").get(authenticate, getWishlist).post(authenticate, addToWishlist);
+router.route("/wishlist/:productId").delete(authenticate, removeFromWishlist);
+
 router
   .route("/:id")
   .delete(authenticate, authorizeAdmin, deleteUserById)

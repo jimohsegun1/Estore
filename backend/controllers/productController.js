@@ -10,9 +10,8 @@ function extractCloudinaryPublicId(url) {
 
 const addProduct = asyncHandler(async (req, res) => {
   try {
-    const { name, description, price, category, quantity, brand } = req.fields;  //wer're using req.fields because of the formidable
+    const { name, description, price, category, quantity, brand } = req.fields;
 
-    // Validation
     switch (true) {
       case !name:
         return res.json({ error: "Name is required" });
@@ -41,7 +40,6 @@ const updateProductDetails = asyncHandler(async (req, res) => {
   try {
     const { name, description, price, category, quantity, brand } = req.fields;
 
-    // Validation
     switch (true) {
       case !name:
         return res.json({ error: "Name is required" });
@@ -58,7 +56,6 @@ const updateProductDetails = asyncHandler(async (req, res) => {
     }
 
     const existing = await Product.findById(req.params.id);
-
     if (existing && req.fields.image && req.fields.image !== existing.image) {
       const publicId = extractCloudinaryPublicId(existing.image);
       if (publicId) await cloudinary.uploader.destroy(publicId);
@@ -69,9 +66,7 @@ const updateProductDetails = asyncHandler(async (req, res) => {
       { ...req.fields },
       { new: true }
     );
-
     await product.save();
-
     res.json(product);
   } catch (error) {
     console.error(error);
@@ -97,26 +92,29 @@ const removeProduct = asyncHandler(async (req, res) => {
 
 const fetchProducts = asyncHandler(async (req, res) => {
   try {
-    const pageSize = 6;
-
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 12;
     const keyword = req.query.keyword
-      ? {
-          name: {
-            $regex: req.query.keyword,
-            $options: "i",
-          },
-        }
+      ? { name: { $regex: req.query.keyword, $options: "i" } }
       : {};
 
-    const count = await Product.countDocuments({ ...keyword });
-    const products = await Product.find({ ...keyword }).limit(pageSize);
+    const sortBy = req.query.sortBy || "newest";
+    const sortMap = {
+      newest: { createdAt: -1 },
+      oldest: { createdAt: 1 },
+      price_asc: { price: 1 },
+      price_desc: { price: -1 },
+      rating: { rating: -1 },
+    };
+    const sort = sortMap[sortBy] || sortMap.newest;
 
-    res.json({
-      products,
-      page: 1,
-      pages: Math.ceil(count / pageSize),
-      hasMore: false,
-    });
+    const count = await Product.countDocuments({ ...keyword });
+    const products = await Product.find({ ...keyword })
+      .sort(sort)
+      .skip((page - 1) * pageSize)
+      .limit(pageSize);
+
+    res.json({ products, page, pages: Math.ceil(count / pageSize), count });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server Error" });
@@ -129,8 +127,7 @@ const fetchProductById = asyncHandler(async (req, res) => {
     if (product) {
       return res.json(product);
     } else {
-      res.status(404);
-      throw new Error("Product not found");
+      res.status(404).json({ error: "Product not found" });
     }
   } catch (error) {
     console.error(error);
@@ -140,11 +137,7 @@ const fetchProductById = asyncHandler(async (req, res) => {
 
 const fetchAllProducts = asyncHandler(async (req, res) => {
   try {
-    const products = await Product.find({})
-      .populate("category")
-      // .limit(12)
-      .sort({ createdAt: -1 });
-
+    const products = await Product.find({}).populate("category").sort({ createdAt: -1 });
     res.json(products);
   } catch (error) {
     console.error(error);
@@ -161,7 +154,6 @@ const addProductReview = asyncHandler(async (req, res) => {
       const alreadyReviewed = product.reviews.find(
         (r) => r.user.toString() === req.user._id.toString()
       );
-
       if (alreadyReviewed) {
         res.status(400);
         throw new Error("Product already reviewed");
@@ -173,14 +165,10 @@ const addProductReview = asyncHandler(async (req, res) => {
         comment,
         user: req.user._id,
       };
-
       product.reviews.push(review);
-
       product.numReviews = product.reviews.length;
-
       product.rating =
-        product.reviews.reduce((acc, item) => item.rating + acc, 0) /
-        product.reviews.length;
+        product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
 
       await product.save();
       res.status(201).json({ message: "Review added" });
@@ -216,13 +204,22 @@ const fetchNewProducts = asyncHandler(async (req, res) => {
 
 const filterProducts = asyncHandler(async (req, res) => {
   try {
-    const { checked, radio } = req.body;
+    const { checked, radio, sortBy } = req.body;
 
     let args = {};
-    if (checked.length > 0) args.category = checked;
-    if (radio.length) args.price = { $gte: radio[0], $lte: radio[1] };
+    if (checked && checked.length > 0) args.category = checked;
+    if (radio && radio.length) args.price = { $gte: radio[0], $lte: radio[1] };
 
-    const products = await Product.find(args);
+    const sortMap = {
+      newest: { createdAt: -1 },
+      oldest: { createdAt: 1 },
+      price_asc: { price: 1 },
+      price_desc: { price: -1 },
+      rating: { rating: -1 },
+    };
+    const sort = sortMap[sortBy] || sortMap.newest;
+
+    const products = await Product.find(args).sort(sort);
     res.json(products);
   } catch (error) {
     console.error(error);

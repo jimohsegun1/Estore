@@ -11,6 +11,7 @@ import {
   findOrderById,
   markOrderAsPaid,
   markOrderAsDelivered,
+  updateOrderStatus,
 } from "../controllers/orderController.js";
 
 import { authenticate, authorizeAdmin } from "../middlewares/authMiddleware.js";
@@ -26,8 +27,7 @@ router.route("/total-sales").get(authenticate, authorizeAdmin, calculateTotalSal
 router.route("/total-sales-by-date").get(authenticate, authorizeAdmin, calcualteTotalSalesByDate);
 router.route("/:id").get(authenticate, findOrderById);
 router.route("/:id/pay").put(authenticate, markOrderAsPaid);
-router
-  .route("/:id/deliver")
-  .put(authenticate, authorizeAdmin, markOrderAsDelivered);
+router.route("/:id/deliver").put(authenticate, authorizeAdmin, markOrderAsDelivered);
+router.route("/:id/status").put(authenticate, authorizeAdmin, updateOrderStatus);
 
 export default router;

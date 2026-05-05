@@ -3,7 +3,7 @@ import { updateCart } from "../../../Utils/cartUtils";
 
 const initialState = localStorage.getItem("cart")
   ? JSON.parse(localStorage.getItem("cart"))
-  : { cartItems: [], shippingAddress: {}, paymentMethod: "PayPal" };
+  : { cartItems: [], shippingAddress: {}, paymentMethod: "PayPal", couponCode: null, discountAmount: 0 };
 
 const cartSlice = createSlice({
   name: "cart",
@@ -12,11 +12,8 @@ const cartSlice = createSlice({
     addToCart: (state, action) => {
       const { user, rating, numReviews, reviews, ...item } = action.payload;
       const existItem = state.cartItems.find((x) => x._id === item._id);
-
       if (existItem) {
-        state.cartItems = state.cartItems.map((x) =>
-          x._id === existItem._id ? item : x
-        );
+        state.cartItems = state.cartItems.map((x) => (x._id === existItem._id ? item : x));
       } else {
         state.cartItems = [...state.cartItems, item];
       }
@@ -38,8 +35,22 @@ const cartSlice = createSlice({
       localStorage.setItem("cart", JSON.stringify(state));
     },
 
-    clearCartItems: (state, action) => {
+    clearCartItems: (state) => {
       state.cartItems = [];
+      state.couponCode = null;
+      state.discountAmount = 0;
+      localStorage.setItem("cart", JSON.stringify(state));
+    },
+
+    applyCoupon: (state, action) => {
+      state.couponCode = action.payload.couponCode;
+      state.discountAmount = action.payload.discountAmount;
+      localStorage.setItem("cart", JSON.stringify(state));
+    },
+
+    removeCoupon: (state) => {
+      state.couponCode = null;
+      state.discountAmount = 0;
       localStorage.setItem("cart", JSON.stringify(state));
     },
 
@@ -53,6 +64,8 @@ export const {
   savePaymentMethod,
   saveShippingAddress,
   clearCartItems,
+  applyCoupon,
+  removeCoupon,
   resetCart,
 } = cartSlice.actions;
 

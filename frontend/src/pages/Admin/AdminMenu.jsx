@@ -1,107 +1,32 @@
-import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { FaTimes } from "react-icons/fa";
 
-const AdminMenu = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+const links = [
+  { to: "/admin/dashboard", label: "Dashboard" },
+  { to: "/admin/categorylist", label: "Categories" },
+  { to: "/admin/productlist", label: "New Product" },
+  { to: "/admin/allproductslist", label: "All Products" },
+  { to: "/admin/userlist", label: "Users" },
+  { to: "/admin/orderlist", label: "Orders" },
+];
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  return (
-    <>
-      <button
-        className={`${
-          isMenuOpen ? "top-2 right-2" : "top-5 right-7"
-        } bg-[#151515] p-2 fixed rounded-lg`}
-        onClick={toggleMenu}
+const AdminMenu = () => (
+  <nav className="flex flex-wrap gap-1 mb-6 bg-white dark:bg-[#0f0f1c] border border-[#e4e4ef] dark:border-[#2a2a45] rounded-2xl p-2 shadow-sm">
+    {links.map(({ to, label }) => (
+      <NavLink
+        key={to}
+        to={to}
+        className={({ isActive }) =>
+          `px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+            isActive
+              ? "bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-brand-sm"
+              : "text-[#6b6b8a] dark:text-[#7777a0] hover:text-[#0f0f1a] dark:hover:text-[#ededff] hover:bg-[#f1f1f7] dark:hover:bg-[#17172a]"
+          }`
+        }
       >
-        {isMenuOpen ? (
-          <FaTimes color="white" />
-        ) : (
-          <>
-            <div className="w-6 h-0.5 bg-gray-200 my-1"></div>
-            <div className="w-6 h-0.5 bg-gray-200 my-1"></div>
-            <div className="w-6 h-0.5 bg-gray-200 my-1"></div>
-          </>
-        )}
-      </button>
-
-      {isMenuOpen && (
-        <section className="bg-[#151515] p-4 fixed right-7 top-5">
-          <ul className="list-none mt-2">
-            <li>
-              <NavLink
-                className="list-item py-2 px-3 block mb-5 hover:bg-[#2E2D2D] rounded-sm"
-                to="/admin/dashboard"
-                style={({ isActive }) => ({
-                  color: isActive ? "greenyellow" : "white",
-                })}
-              >
-                Admin Dashboard
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                className="list-item py-2 px-3 block mb-5 hover:bg-[#2E2D2D] rounded-sm"
-                to="/admin/categorylist"
-                style={({ isActive }) => ({
-                  color: isActive ? "greenyellow" : "white",
-                })}
-              >
-                Create Category
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                className="list-item py-2 px-3 block mb-5 hover:bg-[#2E2D2D] rounded-sm"
-                to="/admin/productlist"
-                style={({ isActive }) => ({
-                  color: isActive ? "greenyellow" : "white",
-                })}
-              >
-                Create Product
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                className="list-item py-2 px-3 block mb-5 hover:bg-[#2E2D2D] rounded-sm"
-                to="/admin/allproductslist"
-                style={({ isActive }) => ({
-                  color: isActive ? "greenyellow" : "white",
-                })}
-              >
-                All Products
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                className="list-item py-2 px-3 block mb-5 hover:bg-[#2E2D2D] rounded-sm"
-                to="/admin/userlist"
-                style={({ isActive }) => ({
-                  color: isActive ? "greenyellow" : "white",
-                })}
-              >
-                Manage Users
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                className="list-item py-2 px-3 block mb-5 hover:bg-[#2E2D2D] rounded-sm"
-                to="/admin/orderlist"
-                style={({ isActive }) => ({
-                  color: isActive ? "greenyellow" : "white",
-                })}
-              >
-                Manage Orders
-              </NavLink>
-            </li>
-          </ul>
-        </section>
-      )}
-    </>
-  );
-};
+        {label}
+      </NavLink>
+    ))}
+  </nav>
+);
 
 export default AdminMenu;

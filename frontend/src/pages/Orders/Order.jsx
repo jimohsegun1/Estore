@@ -25,15 +25,10 @@ const Order = () => {
   useEffect(() => {
     if (!errorPayPal && !loadingPayPal && paypal?.clientId) {
       const loadPayPalScript = async () => {
-        paypalDispatch({
-          type: "resetOptions",
-          value: { "client-id": paypal.clientId, currency: "USD" },
-        });
+        paypalDispatch({ type: "resetOptions", value: { "client-id": paypal.clientId, currency: "USD" } });
         paypalDispatch({ type: "setLoadingStatus", value: "pending" });
       };
-      if (order && !order.isPaid && !window.paypal) {
-        loadPayPalScript();
-      }
+      if (order && !order.isPaid && !window.paypal) loadPayPalScript();
     }
   }, [errorPayPal, loadingPayPal, order, paypal, paypalDispatch]);
 
@@ -42,9 +37,9 @@ const Order = () => {
       try {
         await payOrder({ orderId, details });
         refetch();
-        toast.success("Order is paid");
-      } catch (error) {
-        toast.error(error?.data?.message || error.message);
+        toast.success("Payment successful");
+      } catch (err) {
+        toast.error(err?.data?.message || err.message);
       }
     });
   }
@@ -64,44 +59,51 @@ const Order = () => {
     refetch();
   };
 
-  return isLoading ? (
-    <Loader />
-  ) : error ? (
-    <Message variant="danger">{error?.data?.message || error.message}</Message>
-  ) : (
-    <div className="px-4 sm:px-8 mt-6">
+  if (isLoading) return <Loader />;
+  if (error) return (
+    <div className="px-4 mt-6">
+      <Message variant="danger">{error?.data?.message || error.message}</Message>
+    </div>
+  );
+
+  return (
+    <div className="px-4 sm:px-8 py-8">
+      <h1 className="text-2xl font-bold tracking-tight mb-1">Order details</h1>
+      <p className="text-gray-500 text-sm mb-8 font-mono">{order._id}</p>
+
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Left: order items */}
+        {/* Items */}
         <div className="flex-1 min-w-0">
-          <div className="border border-gray-700 rounded-lg pb-4 mb-6 overflow-hidden">
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl overflow-hidden mb-6">
             {order.orderItems.length === 0 ? (
-              <Message>Order is empty</Message>
+              <div className="p-6">
+                <Message>Order is empty</Message>
+              </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="border-b border-gray-700">
-                    <tr>
-                      <th className="p-3 text-left">Image</th>
-                      <th className="p-3 text-left">Product</th>
-                      <th className="p-3 text-center">Qty</th>
-                      <th className="p-3 text-right">Unit Price</th>
-                      <th className="p-3 text-right">Total</th>
+                <table className="w-full text-sm min-w-[480px]">
+                  <thead className="border-b border-[#2a2a2a]">
+                    <tr className="text-gray-500 text-xs uppercase tracking-wider">
+                      <th className="px-5 py-3 text-left">Product</th>
+                      <th className="px-5 py-3 text-center">Qty</th>
+                      <th className="px-5 py-3 text-right">Price</th>
+                      <th className="px-5 py-3 text-right">Total</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {order.orderItems.map((item, index) => (
-                      <tr key={index} className="border-b border-gray-800">
-                        <td className="p-3">
-                          <img src={item.image} alt={item.name} className="w-14 h-14 object-cover rounded" />
+                  <tbody className="divide-y divide-[#2a2a2a]">
+                    {order.orderItems.map((item, i) => (
+                      <tr key={i}>
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded-xl flex-shrink-0" />
+                            <Link to={`/product/${item.product}`} className="font-medium hover:text-pink-400 transition-colors">
+                              {item.name}
+                            </Link>
+                          </div>
                         </td>
-                        <td className="p-3">
-                          <Link to={`/product/${item.product}`} className="hover:text-pink-500">
-                            {item.name}
-                          </Link>
-                        </td>
-                        <td className="p-3 text-center">{item.qty}</td>
-                        <td className="p-3 text-right">$ {item.price}</td>
-                        <td className="p-3 text-right">$ {(item.qty * item.price).toFixed(2)}</td>
+                        <td className="px-5 py-4 text-center text-gray-400">{item.qty}</td>
+                        <td className="px-5 py-4 text-right text-gray-400">${item.price}</td>
+                        <td className="px-5 py-4 text-right font-semibold">${(item.qty * item.price).toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -111,49 +113,59 @@ const Order = () => {
           </div>
         </div>
 
-        {/* Right: summary */}
-        <div className="lg:w-80 flex-shrink-0 space-y-6">
-          <div className="bg-gray-900 rounded-lg p-5">
-            <h2 className="text-xl font-bold mb-4">Shipping</h2>
-            <div className="space-y-2 text-sm">
-              <p><span className="text-pink-500 font-semibold">Order:</span> {order._id}</p>
-              <p><span className="text-pink-500 font-semibold">Name:</span> {order.user.username}</p>
-              <p><span className="text-pink-500 font-semibold">Email:</span> {order.user.email}</p>
-              <p>
-                <span className="text-pink-500 font-semibold">Address:</span>{" "}
-                {order.shippingAddress.address}, {order.shippingAddress.city}{" "}
-                {order.shippingAddress.postalCode}, {order.shippingAddress.country}
-              </p>
-              <p><span className="text-pink-500 font-semibold">Method:</span> {order.paymentMethod}</p>
-            </div>
-
-            <div className="mt-4">
+        {/* Sidebar */}
+        <div className="lg:w-80 flex-shrink-0 space-y-4">
+          {/* Shipping info */}
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl p-5 text-sm space-y-2">
+            <h2 className="font-bold text-base mb-3">Shipping</h2>
+            <p className="text-gray-400"><span className="text-white font-medium">Name:</span> {order.user.username}</p>
+            <p className="text-gray-400"><span className="text-white font-medium">Email:</span> {order.user.email}</p>
+            <p className="text-gray-400">
+              <span className="text-white font-medium">Address:</span>{" "}
+              {order.shippingAddress.address}, {order.shippingAddress.city}{" "}
+              {order.shippingAddress.postalCode}, {order.shippingAddress.country}
+            </p>
+            <p className="text-gray-400"><span className="text-white font-medium">Payment:</span> {order.paymentMethod}</p>
+            <div className="pt-2">
               {order.isPaid ? (
                 <Message variant="success">Paid on {order.paidAt?.substring(0, 10)}</Message>
               ) : (
                 <Message variant="danger">Not paid</Message>
               )}
             </div>
+            <div>
+              {order.isDelivered ? (
+                <Message variant="success">Delivered on {order.deliveredAt?.substring(0, 10)}</Message>
+              ) : (
+                <Message variant="warning">Not delivered</Message>
+              )}
+            </div>
           </div>
 
-          <div className="bg-gray-900 rounded-lg p-5">
-            <h2 className="text-xl font-bold mb-4">Order Summary</h2>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span>Items</span><span>$ {order.itemsPrice}</span></div>
-              <div className="flex justify-between"><span>Shipping</span><span>$ {order.shippingPrice}</span></div>
-              <div className="flex justify-between"><span>Tax</span><span>$ {order.taxPrice}</span></div>
-              <div className="flex justify-between font-bold text-base border-t border-gray-700 pt-2 mt-2">
-                <span>Total</span><span>$ {order.totalPrice}</span>
+          {/* Order summary */}
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl p-5 text-sm">
+            <h2 className="font-bold text-base mb-4">Order Summary</h2>
+            <div className="space-y-3">
+              <div className="flex justify-between text-gray-400">
+                <span>Items</span><span className="text-white">${order.itemsPrice}</span>
+              </div>
+              <div className="flex justify-between text-gray-400">
+                <span>Shipping</span><span className="text-white">${order.shippingPrice}</span>
+              </div>
+              <div className="flex justify-between text-gray-400">
+                <span>Tax</span><span className="text-white">${order.taxPrice}</span>
+              </div>
+              <div className="border-t border-[#2a2a2a] pt-3 flex justify-between font-bold text-base">
+                <span>Total</span><span className="text-pink-400">${order.totalPrice}</span>
               </div>
             </div>
           </div>
 
+          {/* PayPal */}
           {!order.isPaid && (
             <div>
               {loadingPay && <Loader />}
-              {isPending ? (
-                <Loader />
-              ) : (
+              {isPending ? <Loader /> : (
                 <PayPalButtons createOrder={createOrder} onApprove={onApprove} onError={onError} />
               )}
             </div>
@@ -163,10 +175,10 @@ const Order = () => {
           {userInfo?.isAdmin && order.isPaid && !order.isDelivered && (
             <button
               type="button"
-              className="bg-pink-500 hover:bg-pink-600 text-white w-full py-3 rounded-lg transition-colors"
               onClick={deliverHandler}
+              className="w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold rounded-xl py-3 transition-colors"
             >
-              Mark As Delivered
+              Mark as Delivered
             </button>
           )}
         </div>

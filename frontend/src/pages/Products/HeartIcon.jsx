@@ -1,12 +1,11 @@
 import { useEffect } from "react";
-import { FaHeart, FaRegHeart, FaVaadin } from "react-icons/fa";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import {
   addToFavorites,
   removeFromFavorites,
   setFavorites,
 } from "../../redux/features/favorites/favoriteSlice";
-
 import {
   addFavoriteToLocalStorage,
   getFavoritesFromLocalStorage,
@@ -15,35 +14,35 @@ import {
 
 const HeartIcon = ({ product }) => {
   const dispatch = useDispatch();
-  const favorites = useSelector((state) => state.favorites) || [];   //  Get favorites from the redux store 
+  const favorites = useSelector((state) => state.favorites) || [];
   const isFavorite = favorites.some((p) => p._id === product._id);
 
   useEffect(() => {
-    const favoritesFromLocalStorage = getFavoritesFromLocalStorage();
-    dispatch(setFavorites(favoritesFromLocalStorage));
+    dispatch(setFavorites(getFavoritesFromLocalStorage()));
   }, []);
 
   const toggleFavorites = () => {
     if (isFavorite) {
       dispatch(removeFromFavorites(product));
-      removeFavoriteFromLocalStorage(product._id); // remove the product from the localStorage as well
+      removeFavoriteFromLocalStorage(product._id);
     } else {
       dispatch(addToFavorites(product));
-      addFavoriteToLocalStorage(product); // add the product to localStorage as well
+      addFavoriteToLocalStorage(product);
     }
   };
 
   return (
-    <div
-      className="absolute top-2 right-5 cursor-pointer"
+    <button
       onClick={toggleFavorites}
+      className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
+      aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
     >
       {isFavorite ? (
-        <FaHeart className="text-pink-500" />
+        <FaHeart className="text-pink-500" size={14} />
       ) : (
-        <FaRegHeart className="text-white" />
+        <FaRegHeart className="text-white" size={14} />
       )}
-    </div>
+    </button>
   );
 };
 

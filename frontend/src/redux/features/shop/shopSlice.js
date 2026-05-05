@@ -7,6 +7,7 @@ const initialState = {
   radio: [],
   brandCheckboxes: {},
   checkedBrands: [],
+  sortBy: "newest",
 };
 
 const shopSlice = createSlice({
@@ -28,6 +29,9 @@ const shopSlice = createSlice({
     setSelectedBrand: (state, action) => {
       state.selectedBrand = action.payload;
     },
+    setSortBy: (state, action) => {
+      state.sortBy = action.payload;
+    },
   },
 });
 
@@ -37,6 +41,7 @@ export const {
   setChecked,
   setRadio,
   setSelectedBrand,
+  setSortBy,
 } = shopSlice.actions;
 
 export default shopSlice.reducer;

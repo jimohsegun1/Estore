@@ -4,9 +4,9 @@ import { apiSlice } from "./apiSlice";
 export const productApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getProducts: builder.query({
-      query: ({ keyword }) => ({
+      query: ({ keyword = "", page = 1, pageSize = 12, sortBy = "newest" } = {}) => ({
         url: `${PRODUCT_URL}`,
-        params: { keyword },
+        params: { keyword, page, pageSize, sortBy },
       }),
       keepUnusedDataFor: 5,
       providesTags: ["Products"],
@@ -14,9 +14,7 @@ export const productApiSlice = apiSlice.injectEndpoints({
 
     getProductById: builder.query({
       query: (productId) => `${PRODUCT_URL}/${productId}`,
-      providesTags: (result, error, productId) => [
-        { type: "Product", id: productId },
-      ],
+      providesTags: (result, error, productId) => [{ type: "Product", id: productId }],
     }),
 
     allProducts: builder.query({
@@ -75,11 +73,11 @@ export const productApiSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 5,
     }),
 
-    getFilteredProducts: builder.query({
-      query: ({ checked, radio }) => ({
+    getFilteredProducts: builder.mutation({
+      query: ({ checked, radio, sortBy = "newest" }) => ({
         url: `${PRODUCT_URL}/filtered-products`,
         method: "POST",
-        body: { checked, radio },
+        body: { checked, radio, sortBy },
       }),
     }),
   }),
@@ -96,5 +94,5 @@ export const {
   useGetTopProductsQuery,
   useGetNewProductsQuery,
   useUploadProductImageMutation,
-  useGetFilteredProductsQuery,
+  useGetFilteredProductsMutation,
 } = productApiSlice;

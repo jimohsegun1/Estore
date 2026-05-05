@@ -6,98 +6,102 @@ import { addToCart, removeFromCart } from "../redux/features/cart/cartSlice";
 const Cart = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { cartItems } = useSelector((state) => state.cart);
 
-  const cart = useSelector((state) => state.cart);
-  const { cartItems } = cart;
+  const addToCartHandler = (product, qty) => dispatch(addToCart({ ...product, qty }));
+  const removeFromCartHandler = (id) => dispatch(removeFromCart(id));
+  const checkoutHandler = () => navigate("/login?redirect=/shipping");
 
-  const addToCartHandler = (product, qty) => {
-    dispatch(addToCart({ ...product, qty }));
-  };
+  const totalItems = cartItems.reduce((acc, item) => acc + item.qty, 0);
+  const subtotal = cartItems.reduce((acc, item) => acc + item.qty * item.price, 0);
 
-  const removeFromCartHandler = (id) => {
-    dispatch(removeFromCart(id));
-  };
+  const selectClass =
+    "bg-[#f1f1f7] dark:bg-[#17172a] border border-[#e4e4ef] dark:border-[#2a2a45] text-[#0f0f1a] dark:text-[#ededff] rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-20 flex-shrink-0 transition-colors";
 
-  const checkoutHandler = () => {
-    navigate("/login?redirect=/shipping");
-  };
+  if (cartItems.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
+        <div className="w-20 h-20 rounded-2xl bg-white dark:bg-[#0f0f1c] border border-[#e4e4ef] dark:border-[#2a2a45] flex items-center justify-center mb-5 shadow-sm">
+          <span className="text-3xl">🛒</span>
+        </div>
+        <h2 className="text-xl font-bold mb-2 text-[#0f0f1a] dark:text-[#ededff]">Your cart is empty</h2>
+        <p className="text-[#6b6b8a] dark:text-[#7777a0] text-sm mb-6">Add some products to get started.</p>
+        <Link to="/shop"
+          className="bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white font-semibold rounded-xl px-6 py-2.5 transition-all shadow-brand-sm">
+          Browse products
+        </Link>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 mt-8">
-      {cartItems.length === 0 ? (
-        <div className="text-center py-16">
-          <p className="text-lg mb-4">Your cart is empty</p>
-          <Link to="/shop" className="bg-pink-600 text-white px-6 py-2 rounded-full hover:bg-pink-700">
-            Go To Shop
-          </Link>
-        </div>
-      ) : (
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Cart items */}
-          <div className="flex-1">
-            <h1 className="text-2xl font-semibold mb-6">Shopping Cart</h1>
+    <div className="px-4 sm:px-8 py-8">
+      <h1 className="text-2xl font-bold tracking-tight mb-8 text-[#0f0f1a] dark:text-[#ededff]">Shopping Cart</h1>
 
-            {cartItems.map((item) => (
-              <div key={item._id} className="flex items-center gap-4 mb-4 pb-4 border-b border-gray-700">
-                <div className="w-20 h-20 flex-shrink-0">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-full h-full object-cover rounded"
-                  />
-                </div>
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex-1 space-y-3">
+          {cartItems.map((item) => (
+            <div key={item._id}
+              className="flex items-center gap-4 bg-white dark:bg-[#0f0f1c] border border-[#e4e4ef] dark:border-[#2a2a45] rounded-2xl p-4 shadow-sm">
+              <img src={item.image} alt={item.name}
+                className="w-20 h-20 object-cover rounded-xl flex-shrink-0" />
 
-                <div className="flex-1 min-w-0">
-                  <Link to={`/product/${item._id}`} className="text-pink-500 hover:underline truncate block">
-                    {item.name}
-                  </Link>
-                  <div className="text-gray-400 text-sm mt-1">{item.brand}</div>
-                  <div className="font-bold mt-1">$ {item.price}</div>
-                </div>
-
-                <select
-                  className="p-1 border rounded text-black w-16"
-                  value={item.qty}
-                  onChange={(e) => addToCartHandler(item, Number(e.target.value))}
-                >
-                  {[...Array(item.countInStock).keys()].map((x) => (
-                    <option key={x + 1} value={x + 1}>
-                      {x + 1}
-                    </option>
-                  ))}
-                </select>
-
-                <button
-                  className="text-red-500 hover:text-red-700 p-2"
-                  onClick={() => removeFromCartHandler(item._id)}
-                >
-                  <FaTrash size={16} />
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Order summary */}
-          <div className="lg:w-72 flex-shrink-0">
-            <div className="bg-gray-900 rounded-lg p-6 sticky top-4">
-              <h2 className="text-xl font-semibold mb-4">
-                Subtotal ({cartItems.reduce((acc, item) => acc + item.qty, 0)} items)
-              </h2>
-              <div className="text-2xl font-bold mb-6">
-                ${cartItems.reduce((acc, item) => acc + item.qty * item.price, 0).toFixed(2)}
+              <div className="flex-1 min-w-0">
+                <Link to={`/product/${item._id}`}
+                  className="font-semibold text-sm text-[#0f0f1a] dark:text-[#ededff] hover:text-indigo-500 dark:hover:text-[#818cf8] transition-colors line-clamp-2">
+                  {item.name}
+                </Link>
+                <p className="text-[#6b6b8a] dark:text-[#7777a0] text-xs mt-0.5">{item.brand}</p>
+                <p className="text-indigo-500 dark:text-[#818cf8] font-bold mt-1">${item.price}</p>
               </div>
 
-              <button
-                className="bg-pink-500 hover:bg-pink-600 text-white py-3 px-4 rounded-full text-lg w-full transition-colors disabled:opacity-50"
-                disabled={cartItems.length === 0}
-                onClick={checkoutHandler}
-              >
-                Proceed To Checkout
+              <select className={selectClass} value={item.qty}
+                onChange={(e) => addToCartHandler(item, Number(e.target.value))}>
+                {[...Array(item.countInStock).keys()].map((x) => (
+                  <option key={x + 1} value={x + 1}>{x + 1}</option>
+                ))}
+              </select>
+
+              <button onClick={() => removeFromCartHandler(item._id)}
+                className="p-2 text-[#6b6b8a] dark:text-[#7777a0] hover:text-red-500 transition-colors flex-shrink-0"
+                aria-label="Remove item">
+                <FaTrash size={14} />
               </button>
             </div>
+          ))}
+        </div>
+
+        <div className="lg:w-72 flex-shrink-0">
+          <div className="bg-white dark:bg-[#0f0f1c] border border-[#e4e4ef] dark:border-[#2a2a45] rounded-2xl p-6 sticky top-4 shadow-sm">
+            <h2 className="font-bold text-lg mb-5 text-[#0f0f1a] dark:text-[#ededff]">Order Summary</h2>
+
+            <div className="space-y-3 text-sm mb-5">
+              <div className="flex justify-between text-[#6b6b8a] dark:text-[#7777a0]">
+                <span>Items ({totalItems})</span>
+                <span className="text-[#0f0f1a] dark:text-[#ededff] font-medium">${subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-[#6b6b8a] dark:text-[#7777a0]">
+                <span>Shipping</span>
+                <span className="text-[#0f0f1a] dark:text-[#ededff] font-medium">At checkout</span>
+              </div>
+              <div className="border-t border-[#e4e4ef] dark:border-[#2a2a45] pt-3 flex justify-between font-bold">
+                <span className="text-[#0f0f1a] dark:text-[#ededff]">Total</span>
+                <span className="text-indigo-500 dark:text-[#818cf8] text-lg">${subtotal.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <button onClick={checkoutHandler}
+              className="w-full bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white font-semibold rounded-xl py-3 transition-all shadow-brand-sm hover:shadow-brand-md">
+              Proceed to Checkout
+            </button>
+
+            <Link to="/shop"
+              className="block text-center mt-3 text-sm text-[#6b6b8a] dark:text-[#7777a0] hover:text-[#0f0f1a] dark:hover:text-[#ededff] transition-colors">
+              Continue shopping
+            </Link>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

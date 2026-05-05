@@ -12,9 +12,7 @@ export const orderApiSlice = apiSlice.injectEndpoints({
     }),
 
     getOrderDetails: builder.query({
-      query: (id) => ({
-        url: `${ORDERS_URL}/${id}`,
-      }),
+      query: (id) => ({ url: `${ORDERS_URL}/${id}` }),
     }),
 
     payOrder: builder.mutation({
@@ -26,28 +24,30 @@ export const orderApiSlice = apiSlice.injectEndpoints({
     }),
 
     getPaypalClientId: builder.query({
-      query: () => ({
-        url: PAYPAL_URL,
-      }),
+      query: () => ({ url: PAYPAL_URL }),
     }),
 
     getMyOrders: builder.query({
-      query: () => ({
-        url: `${ORDERS_URL}/mine`,
-      }),
+      query: () => ({ url: `${ORDERS_URL}/mine` }),
       keepUnusedDataFor: 5,
     }),
 
     getOrders: builder.query({
-      query: () => ({
-        url: ORDERS_URL,
-      }),
+      query: () => ({ url: ORDERS_URL }),
     }),
 
     deliverOrder: builder.mutation({
       query: (orderId) => ({
         url: `${ORDERS_URL}/${orderId}/deliver`,
         method: "PUT",
+      }),
+    }),
+
+    updateOrderStatus: builder.mutation({
+      query: ({ orderId, status }) => ({
+        url: `${ORDERS_URL}/${orderId}/status`,
+        method: "PUT",
+        body: { status },
       }),
     }),
 
@@ -69,12 +69,12 @@ export const {
   useGetTotalOrdersQuery,
   useGetTotalSalesQuery,
   useGetTotalSalesByDateQuery,
-  // ------------------
   useCreateOrderMutation,
   useGetOrderDetailsQuery,
   usePayOrderMutation,
   useGetPaypalClientIdQuery,
   useGetMyOrdersQuery,
   useDeliverOrderMutation,
+  useUpdateOrderStatusMutation,
   useGetOrdersQuery,
 } = orderApiSlice;

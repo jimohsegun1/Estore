@@ -7,86 +7,77 @@ import Loader from "../../components/Loader";
 const AllProducts = () => {
   const { data: products, isLoading, isError } = useAllProductsQuery();
 
-  if (isLoading) {
-    return <Loader/> //<div>Loading...</div>;
-  }
+  if (isLoading) return (
+    <div className="px-4 sm:px-8 py-6">
+      <AdminMenu />
+      <Loader />
+    </div>
+  );
 
-  if (isError) {
-    return <div>Error loading products</div>;
-  }
+  if (isError) return (
+    <div className="px-4 sm:px-8 py-6">
+      <AdminMenu />
+      <p className="text-red-400">Error loading products.</p>
+    </div>
+  );
 
   return (
-    <>
-      <div className="container mx-[9rem]">
-        <div className="flex flex-col  md:flex-row">
-          <div className="p-3">
-            <div className="ml-[2rem] text-xl font-bold h-12">
-              All Products ({products.length})
-            </div>
-            <div className="flex flex-wrap justify-around items-center">
-              {products.map((product) => (
-                <Link
-                  key={product._id}
-                  to={`/admin/product/update/${product._id}`}
-                  className="block mb-4 overflow-hidden"
-                >
-                  <div className="flex">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-[10rem] object-cover"
-                    />
-                    <div className="p-4 flex flex-col justify-around">
-                      <div className="flex justify-between">
-                        <h5 className="text-xl font-semibold mb-2">
-                          {product?.name}
-                        </h5>
+    <div className="px-4 sm:px-8 py-6">
+      <AdminMenu />
 
-                        <p className="text-gray-400 text-xs">
-                          {moment(product.createdAt).format("MMMM Do YYYY")}
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">All Products</h1>
+        <span className="text-gray-500 text-sm">{products.length} items</span>
+      </div>
+
+      <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[600px]">
+            <thead className="border-b border-[#2a2a2a]">
+              <tr className="text-gray-500 text-xs uppercase tracking-wider">
+                <th className="px-5 py-3 text-left">Product</th>
+                <th className="px-5 py-3 text-right">Price</th>
+                <th className="px-5 py-3 text-left hidden sm:table-cell">Added</th>
+                <th className="px-5 py-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#2a2a2a]">
+              {products.map((product) => (
+                <tr key={product._id} className="hover:bg-[#242424] transition-colors">
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-12 h-12 object-cover rounded-xl flex-shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <p className="font-semibold truncate">{product.name}</p>
+                        <p className="text-gray-500 text-xs truncate max-w-xs hidden sm:block">
+                          {product.description?.substring(0, 60)}…
                         </p>
                       </div>
-
-                      <p className="text-gray-400 xl:w-[30rem] lg:w-[30rem] md:w-[20rem] sm:w-[10rem] text-sm mb-4">
-                        {product?.description?.substring(0, 160)}...
-                      </p>
-
-                      <div className="flex justify-between">
-                        <Link
-                          to={`/admin/product/update/${product._id}`}
-                          className="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-pink-700 rounded-lg hover:bg-pink-800 focus:ring-4 focus:outline-none focus:ring-pink-300 dark:bg-pink-600 dark:hover:bg-pink-700 dark:focus:ring-pink-800"
-                        >
-                          Update Product
-                          <svg
-                            className="w-3.5 h-3.5 ml-2"
-                            aria-hidden="true"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 14 10"
-                          >
-                            <path
-                              stroke="currentColor"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M1 5h12m0 0L9 1m4 4L9 9"
-                            />
-                          </svg>
-                        </Link>
-                        <p>$ {product?.price}</p>
-                      </div>
                     </div>
-                  </div>
-                </Link>
+                  </td>
+                  <td className="px-5 py-4 text-right font-semibold text-pink-400">${product.price}</td>
+                  <td className="px-5 py-4 text-gray-500 text-xs hidden sm:table-cell">
+                    {moment(product.createdAt).format("MMM D, YYYY")}
+                  </td>
+                  <td className="px-5 py-4 text-right">
+                    <Link
+                      to={`/admin/product/update/${product._id}`}
+                      className="text-xs font-semibold text-pink-400 hover:text-pink-300 transition-colors"
+                    >
+                      Edit →
+                    </Link>
+                  </td>
+                </tr>
               ))}
-            </div>
-          </div>
-          <div className="md:w-1/4 p-3 mt-2">
-            <AdminMenu />
-          </div>
+            </tbody>
+          </table>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -6,6 +6,9 @@ import { setCredentials } from "../../redux/features/auth/authSlice";
 import { toast } from "react-toastify";
 import { useRegisterMutation } from "../../redux/api/usersApiSlice";
 
+const inputClass =
+  "w-full bg-[#f1f1f7] dark:bg-[#17172a] border border-[#e4e4ef] dark:border-[#2a2a45] text-[#0f0f1a] dark:text-[#ededff] placeholder-[#6b6b8a] dark:placeholder-[#7777a0] rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors";
+
 const Register = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -14,9 +17,7 @@ const Register = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const [register, { isLoading }] = useRegisterMutation();
-
   const { userInfo } = useSelector((state) => state.auth);
 
   const { search } = useLocation();
@@ -24,130 +25,90 @@ const Register = () => {
   const redirect = sp.get("redirect") || "/";
 
   useEffect(() => {
-    if (userInfo) {
-      navigate(redirect);
-    }
+    if (userInfo) navigate(redirect);
   }, [navigate, redirect, userInfo]);
 
   const submitHandler = async (e) => {
-        e.preventDefault();
-        if (password !== confirmPassword) {
-        toast.error("Passwords do not match");
-        } else {
-        try {
-            const res = await register({ username, email, password }).unwrap();
-            dispatch(setCredentials({ ...res }));
-            navigate(redirect);
-            toast.success("User successfully registered");
-        } catch (err) {
-            toast.error(err?.data?.message || err.message || "Registration failed");
-        }
-        }
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    try {
+      const res = await register({ username, email, password }).unwrap();
+      dispatch(setCredentials({ ...res }));
+      navigate(redirect);
+      toast.success("Account created successfully");
+    } catch (err) {
+      toast.error(err?.data?.message || err.message || "Registration failed");
+    }
   };
 
   return (
-    <section className="pl-[10rem] flex flex-wrap">
-      <div className="mr-[4rem] mt-[5rem]">
-        <h1 className="text-2xl font-semibold mb-4">Register</h1>
-
-        <form onSubmit={submitHandler} className="container w-[40rem]">
-          <div className="my-[2rem]">
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-white"
-            >
-              Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              className="mt-1 p-2 border rounded w-full"
-              placeholder="Enter name"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-violet-500 rounded-xl flex items-center justify-center font-bold text-white text-sm flex-shrink-0 shadow-brand-sm">
+            E
           </div>
+          <span className="font-bold text-lg tracking-tight text-[#0f0f1a] dark:text-[#ededff]">Estore</span>
+        </div>
 
-          <div className="my-[2rem]">
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-white"
-            >
-              Email Address
-            </label>
-            <input
-              type="email"
-              id="email"
-              className="mt-1 p-2 border rounded w-full"
-              placeholder="Enter email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
+        <div className="bg-white dark:bg-[#0f0f1c] border border-[#e4e4ef] dark:border-[#2a2a45] rounded-2xl p-8 shadow-sm">
+          <h1 className="text-2xl font-bold tracking-tight mb-1 text-[#0f0f1a] dark:text-[#ededff]">Create account</h1>
+          <p className="text-[#6b6b8a] dark:text-[#7777a0] text-sm mb-7">Join Estore today</p>
 
-          <div className="my-[2rem]">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-white"
-            >
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              className="mt-1 p-2 border rounded w-full"
-              placeholder="Enter password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
+          <form onSubmit={submitHandler} className="space-y-5">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-[#0f0f1a] dark:text-[#ededff] mb-1.5">
+                Full name
+              </label>
+              <input type="text" id="name" className={inputClass} placeholder="Your name"
+                value={username} onChange={(e) => setUsername(e.target.value)} required />
+            </div>
 
-          <div className="my-[2rem]">
-            <label
-              htmlFor="confirmPassword"
-              className="block text-sm font-medium text-white"
-            >
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              className="mt-1 p-2 border rounded w-full"
-              placeholder="Confirm password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-          </div>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-[#0f0f1a] dark:text-[#ededff] mb-1.5">
+                Email address
+              </label>
+              <input type="email" id="email" className={inputClass} placeholder="you@example.com"
+                value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
 
-          <button
-            disabled={isLoading}
-            type="submit"
-            className="bg-pink-500 text-white px-4 py-2 rounded cursor-pointer my-[1rem]"
-          >
-            {isLoading ? "Registering..." : "Register"}
-          </button>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-[#0f0f1a] dark:text-[#ededff] mb-1.5">
+                Password
+              </label>
+              <input type="password" id="password" className={inputClass} placeholder="••••••••"
+                value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </div>
+
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-[#0f0f1a] dark:text-[#ededff] mb-1.5">
+                Confirm password
+              </label>
+              <input type="password" id="confirmPassword" className={inputClass} placeholder="••••••••"
+                value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+            </div>
+
+            <button disabled={isLoading} type="submit"
+              className="w-full bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl py-2.5 transition-all shadow-brand-sm hover:shadow-brand-md active:scale-[0.98]">
+              {isLoading ? "Creating account…" : "Create account"}
+            </button>
+          </form>
 
           {isLoading && <Loader />}
-        </form>
 
-        <div className="mt-4">
-          <p className="text-white">
+          <p className="mt-6 text-center text-sm text-[#6b6b8a] dark:text-[#7777a0]">
             Already have an account?{" "}
-            <Link
-              to={redirect ? `/login?redirect=${redirect}` : "/login"}
-              className="text-pink-500 hover:underline"
-            >
-              Login
+            <Link to={redirect ? `/login?redirect=${redirect}` : "/login"}
+              className="text-indigo-500 dark:text-[#818cf8] hover:underline font-medium transition-colors">
+              Sign in
             </Link>
           </p>
         </div>
       </div>
-      <img
-        src="https://images.unsplash.com/photo-1576502200916-3808e07386a5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2065&q=80"
-        alt=""
-        className="h-[65rem] w-[59%] xl:block md:hidden sm:hidden rounded-lg"
-      />
-    </section>
+    </div>
   );
 };
 

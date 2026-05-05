@@ -1,91 +1,53 @@
+import { Link } from "react-router-dom";
 import { useGetTopProductsQuery } from "../../redux/api/productApiSlice";
 import Message from "../../components/Message";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import moment from "moment";
-import { FaBox, FaClock, FaShoppingCart, FaStar, FaStore } from "react-icons/fa";
 
 const ProductCarousel = () => {
   const { data: products, isLoading, error } = useGetTopProductsQuery();
 
   const settings = {
-    dots: false,
+    dots: true,
     infinite: true,
-    speed: 500,
+    speed: 600,
     slidesToShow: 1,
     slidesToScroll: 1,
-    arrows: true,
+    arrows: false,
     autoplay: true,
-    autoplaySpeed: 3000,
+    autoplaySpeed: 4000,
+    dotsClass: "slick-dots !bottom-4",
   };
 
   return (
-    <div className="w-full max-w-[50rem] mb-4">
+    <div className="w-full rounded-2xl overflow-hidden">
       {isLoading ? null : error ? (
-        <Message variant="danger">
-          {error?.data?.message || error.message}
-        </Message>
+        <Message variant="danger">{error?.data?.message || error.message}</Message>
       ) : (
         <Slider {...settings}>
-          {products.map(
-            ({
-              image,
-              _id,
-              name,
-              price,
-              description,
-              brand,
-              createdAt,
-              numReviews,
-              rating,
-              quantity,
-              countInStock,
-            }) => (
-              <div key={_id}>
-                <img
-                  src={image}
-                  alt={name}
-                  className="w-full rounded-lg object-cover h-48 sm:h-[30rem]"
-                />
-
-                <div className="mt-4 flex flex-col sm:flex-row justify-between gap-4 px-1">
-                  <div className="flex-1">
-                    <h2 className="text-lg font-semibold">{name}</h2>
-                    <p className="text-pink-400">$ {price}</p>
-                    <p className="mt-2 text-sm text-gray-300 line-clamp-3 sm:w-[25rem]">
-                      {description.substring(0, 170)}...
-                    </p>
-                  </div>
-
-                  <div className="flex gap-6 text-sm">
-                    <div className="flex flex-col gap-3">
-                      <span className="flex items-center gap-1">
-                        <FaStore className="text-white" /> {brand}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <FaClock className="text-white" /> {moment(createdAt).fromNow()}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <FaStar className="text-white" /> {numReviews} reviews
-                      </span>
-                    </div>
-                    <div className="flex flex-col gap-3">
-                      <span className="flex items-center gap-1">
-                        <FaStar className="text-white" /> {Math.round(rating)} / 5
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <FaShoppingCart className="text-white" /> Qty: {quantity}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <FaBox className="text-white" /> Stock: {countInStock}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+          {products.map(({ image, _id, name, price, description }) => (
+            <div key={_id} className="relative">
+              <img
+                src={image}
+                alt={name}
+                className="w-full h-56 sm:h-[26rem] object-cover"
+              />
+              {/* gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8">
+                <Link to={`/product/${_id}`}>
+                  <h2 className="text-xl sm:text-3xl font-bold leading-tight mb-1 hover:text-pink-300 transition-colors">
+                    {name}
+                  </h2>
+                </Link>
+                <p className="text-pink-400 font-semibold text-lg mb-2">${price}</p>
+                <p className="text-gray-300 text-sm line-clamp-2 max-w-lg hidden sm:block">
+                  {description}
+                </p>
               </div>
-            )
-          )}
+            </div>
+          ))}
         </Slider>
       )}
     </div>
